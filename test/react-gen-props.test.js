@@ -43,4 +43,17 @@ describe('PropTypes', () => {
     assert.equal(props.age[metaSymbol], ageMeta)
   })
 
+  it('creates an exaustive set of options', () => {
+    const props = {
+      color: PropTypes.oneOf(['red', 'blue', 'green']).isRequired
+    }
+
+    const result = sample(props, {times: 3})
+    const colors = result.map(p => p.color)
+
+    assert.ok(colors.indexOf('red') > -1)
+    assert.ok(colors.indexOf('blue') > -1)
+    assert.ok(colors.indexOf('green') > -1)
+  })
+
 })
