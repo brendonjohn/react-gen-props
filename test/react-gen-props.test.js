@@ -1,5 +1,5 @@
 import assert from 'assert'
-import {PropTypes, sample} from '../src'
+import {PropTypes, sample, metaSymbol} from '../src'
 
 describe('PropTypes', () => {
 
@@ -28,6 +28,19 @@ describe('PropTypes', () => {
       assert.ok(typeof obj.shirt.color === 'string')
       assert.ok(typeof obj.shirt.sleeveLength === 'number')
     })
+  })
+
+  it('adds meta properties to the properties', () => {
+    const nameMeta = {description: 'The name of the person'}
+    const ageMeta = {description: 'The age of the person'}
+
+    const props = {
+      name: PropTypes.string.isRequired.meta(nameMeta),
+      age: PropTypes.number.meta(ageMeta).isRequired
+    }
+
+    assert.equal(props.name[metaSymbol], nameMeta)
+    assert.equal(props.age[metaSymbol], ageMeta)
   })
 
 })

@@ -19,37 +19,41 @@ const nodeGen = gen.oneOf([
 
 const funcGen = gen.return(function noop () {})
 
-export const symbol = (function () {
+const createSymbol = type => {
   let result
   const Symbol = global.Symbol
 
   if (typeof Symbol === 'function') {
-    if (Symbol.genProp) {
-      result = Symbol.genProp
+    if (Symbol[type]) {
+      result = Symbol[type]
     } else {
-      result = Symbol('genProp')
-      Symbol.genProp = result
+      result = Symbol(type)
+      Symbol[type] = result
     }
   } else {
-    result = `@@genProp`
+    result = `@@${type}`
   }
 
   return result
-}())
+}
+
+export const genPropSymbol = createSymbol('gen')
+export const metaSymbol = createSymbol('meta')
+export const requiredSymbol = createSymbol('required')
 
 export function sample (propTypes, opts) {
   const { maxSize = 10, times = 20 } = opts
-  return testcheck.sample(wrap(propTypes), {maxSize, times})
+  return testcheck.sample(genProps(propTypes), {maxSize, times})
 }
 
-export function wrap (obj) {
-  if (obj[symbol]) {
-    return obj[symbol]
+export function genProps (obj) {
+  if (obj[genPropSymbol]) {
+    return obj[genPropSymbol]
   }
 
   if (isObject(obj)) {
-    obj[symbol] = wrapObject(obj)
-    return obj[symbol]
+    obj[genPropSymbol] = wrapObject(obj)
+    return obj[genPropSymbol]
   }
 
   throw 'wat?'
@@ -58,40 +62,66 @@ export function wrap (obj) {
 function wrapObject (obj) {
   return reduce(obj, (genAcc, value, key) => {
     return gen.bind(genAcc, acc =>
-      gen.map(rnd => extend({}, acc, { [key]: rnd }), wrap(value))
+      gen.map(rnd => extend({}, acc, { [key]: rnd }), genProps(value))
     )
   }, gen.return({}))
 }
 
-function wrapPrimative (type, primGen) {
+// TODO dry
+function wrapPrimative (typeFn, primGen) {
   // creates a new fn
-  const fn = type.bind(null)
-  fn.isRequired = type.isRequired.bind(null)
+  const fn = typeFn.bind(null)
+  fn[genPropSymbol] = gen.oneOf([primGen, undefinedGen])
+  fn[requiredSymbol] = false
 
-  fn[symbol] = gen.oneOf([primGen, undefinedGen])
-  fn.isRequired[symbol] = primGen
+  fn.isRequired = typeFn.isRequired.bind(null)
+  fn.isRequired[genPropSymbol] = primGen
+  fn.isRequired[requiredSymbol] = true
+
+  fn.isRequired.meta = data => {
+    const wrapper = typeFn.isRequired.bind(null)
+    wrapper[genPropSymbol] = primGen
+    wrapper[requiredSymbol] = true
+    wrapper[metaSymbol] = data
+
+    return wrapper
+  }
+
+  fn.meta = data => {
+    const wrapper = typeFn.bind(null)
+    wrapper[genPropSymbol] = gen.oneOf([primGen, undefinedGen])
+    wrapper[requiredSymbol] = false
+    wrapper[metaSymbol] = data
+
+    wrapper.isRequired = typeFn.isRequired.bind(null)
+    wrapper.isRequired[genPropSymbol] = primGen
+    wrapper.isRequired[requiredSymbol] = true
+    wrapper.isRequired[metaSymbol] = data
+
+    return wrapper
+  }
 
   return fn
 }
 
-function wrappedArrayOf (type) {
-  const arrayGen = gen.array(wrap(type))
-  return wrapPrimative(React.PropTypes.arrayOf(type), arrayGen)
+function wrappedArrayOf (typeFn) {
+  const arrayGen = gen.array(genProps(typeFn))
+  return wrapPrimative(React.PropTypes.arrayOf(typeFn), arrayGen)
 }
 
-function wrappedObjectOf (type) {
-  const objGen = gen.object(wrap(type))
-  return wrapPrimative(React.PropTypes.objectOf(type), objGen)
+function wrappedObjectOf (typeFn) {
+  const objGen = gen.object(genProps(typeFn))
+  return wrapPrimative(React.PropTypes.objectOf(typeFn), objGen)
 }
 
-function wrappedShape (type) {
-  const shapeGen = wrap(type)
-  return wrapPrimative(React.PropTypes.shape(type), shapeGen)
+function wrappedShape (typeFn) {
+  const shapeGen = genProps(typeFn)
+  return wrapPrimative(React.PropTypes.shape(typeFn), shapeGen)
 }
 
-function wrappedOneOfType (types) {
-  const oneOfTypeGen = gen.oneOf(types.map(wrap))
-  return wrapPrimative(React.PropTypes.oneOfType(types), oneOfTypeGen)
+function wrappedOneOfType (typeFns) {
+  const oneOfTypeGen = gen.oneOf(typeFns.map(wrap))
+  return wrapPrimative(React.PropTypes.oneOfType(typeFns), oneOfTypeGen)
 }
 
 function wrappedOneOf (objs) {
