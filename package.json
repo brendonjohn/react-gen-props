@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "start": "np patch",
-    "prepublish": "babel src -d dist",
+    "prepublish": "babel src -d lib",
     "test": "mocha --compilers js:babel-register test/*.test.js",
     "lint": "standard **/*.js"
   },
