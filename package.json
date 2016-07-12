@@ -2,11 +2,11 @@
   "name": "react-gen-props",
   "version": "0.0.1",
   "description": "Use testcheck to generate props from your propTypes",
-  "main": "dist/index.js",
+  "main": "lib/index.js",
   "scripts": {
     "start": "babel src -d lib",
     "test": "mocha --compilers js:babel-register test/*.test.js",
-    "test:watch": "npm test -- --watch"
+    "lint": "standard **/*.js"
   },
   "keywords": [
     "react",
@@ -26,12 +26,20 @@
     "babel-core": "6.10.4",
     "babel-preset-es2015": "6.9.0",
     "babel-preset-react": "6.11.1",
-    "mocha": "2.5.3"
+    "babel-preset-stage-2": "6.11.0",
+    "mocha": "2.5.3",
+    "standard": "7.1.2"
   },
   "babel": {
     "presets": [
       "es2015",
-      "react"
+      "react",
+      "stage-2"
     ]
+  },
+  "standard": {
+    "env": {
+      "mocha": true
+    }
   }
 }

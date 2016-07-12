@@ -1,8 +1,7 @@
 import assert from 'assert'
-import {PropTypes, sample, metaSymbol} from '../src'
+import {PropTypes, sample, getMeta} from '../src'
 
 describe('PropTypes', () => {
-
   it('generates random properties', () => {
     const props = {
       name: PropTypes.string.isRequired,
@@ -25,35 +24,60 @@ describe('PropTypes', () => {
       assert.deepEqual(Object.keys(obj.shirt), ['color', 'sleeveLength'])
       assert.ok(typeof obj.name === 'string')
       assert.ok(typeof obj.age === 'number')
+      assert.ok(typeof obj.isCool === 'boolean' || typeof obj.isCool === 'undefined')
       assert.ok(typeof obj.shirt.color === 'string')
       assert.ok(typeof obj.shirt.sleeveLength === 'number')
     })
   })
 
-  it('adds meta properties to the properties', () => {
-    const nameMeta = {description: 'The name of the person'}
-    const ageMeta = {description: 'The age of the person'}
+  it('adds meta properties for easily consumable documentation', () => {
+    const coolMeta = {description: 'Whether someone is cool or something'}
+    const ageMeta = {description: 'The aim of the game'}
+    const shirtMeta = {description: 'The dimensions of your shirt', madeIn: 'China'}
 
     const props = {
-      name: PropTypes.string.isRequired.meta(nameMeta),
-      age: PropTypes.number.meta(ageMeta).isRequired
+      name: PropTypes.string,
+      age: PropTypes.number.isRequired.meta(ageMeta),
+      isCool: PropTypes.bool.meta(coolMeta),
+      shirt: PropTypes.shape({
+        color: PropTypes.oneOf(['red', 'blue', 'green']).isRequired,
+        sleeveLength: PropTypes.number
+      }).isRequired.meta(shirtMeta)
     }
 
-    assert.equal(props.name[metaSymbol], nameMeta)
-    assert.equal(props.age[metaSymbol], ageMeta)
+    const type = getMeta(props)
+
+    assert.deepEqual(type, {
+      name: {
+        type: 'string',
+        required: false
+      },
+      age: {
+        ...ageMeta,
+        type: 'number',
+        required: true
+      },
+      isCool: {
+        ...coolMeta,
+        type: 'boolean',
+        required: false
+      },
+      shirt: {
+        ...shirtMeta,
+        type: ['shape', {
+          color: {
+            type: ['oneOf',
+              ['red', 'blue', 'green']
+            ],
+            required: true
+          },
+          sleeveLength: {
+            type: 'number',
+            required: false
+          }
+        }],
+        required: true
+      }
+    })
   })
-
-  it('creates an exaustive set of options', () => {
-    const props = {
-      color: PropTypes.oneOf(['red', 'blue', 'green']).isRequired
-    }
-
-    const result = sample(props, {times: 3})
-    const colors = result.map(p => p.color)
-
-    assert.ok(colors.indexOf('red') > -1)
-    assert.ok(colors.indexOf('blue') > -1)
-    assert.ok(colors.indexOf('green') > -1)
-  })
-
 })
