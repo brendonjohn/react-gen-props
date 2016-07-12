@@ -4,7 +4,8 @@
   "description": "Use testcheck to generate props from your propTypes",
   "main": "lib/index.js",
   "scripts": {
-    "start": "babel src -d lib",
+    "start": "np patch",
+    "prepublish": "babel src -d dist",
     "test": "mocha --compilers js:babel-register test/*.test.js",
     "lint": "standard **/*.js"
   },
@@ -28,6 +29,7 @@
     "babel-preset-react": "6.11.1",
     "babel-preset-stage-2": "6.11.0",
     "mocha": "2.5.3",
+    "np": "2.6.0",
     "standard": "7.1.2"
   },
   "babel": {
