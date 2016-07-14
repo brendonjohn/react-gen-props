@@ -111,4 +111,16 @@ describe('PropTypes', () => {
     });
   });
 
+  it("doesn't support faker templates in any other PropType that is not string", () => {
+
+
+    const nameMeta = {
+      exampleTemplate: "{{name.firstName}} {{name.lastName}}"
+    };
+
+    assert.throws(() => PropTypes.number.isRequired.meta(nameMeta),
+                  /exampleTemplate/);
+
+  });
+
 });

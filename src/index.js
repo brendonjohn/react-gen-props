@@ -87,6 +87,17 @@ function wrapObject(obj) {
   );
 }
 
+function addFakerSupport(data, type, primGen) {
+  if (type === "string" && data.exampleTemplate !== undefined) {
+    return gen.map(() => faker.fake(data.exampleTemplate),
+                   gen.return(null));
+  } else if (data.exampleTemplate !== undefined) {
+    throw new Error(`Invalid type ${type} with exampleTemplate`);
+  } else {
+    return primGen;
+  }
+}
+
 // TODO dry
 function wrapPrimitive(typeFn, primGen, type) {
 
@@ -102,26 +113,13 @@ function wrapPrimitive(typeFn, primGen, type) {
   fn.meta = data => {
     const wrapper = typeFn.bind(null);
 
-    if (data.exampleTemplate !== undefined &&
-        type === 'string') {
-      wrapper[genPropSymbol] = gen.oneOf([gen.map(() => faker.fake(data.exampleTemplate),
-                                                  gen.return(null)),
-                                          undefinedGen]);
-    } else {
-      wrapper[genPropSymbol] = gen.oneOf([primGen, undefinedGen]);
-    }
+    wrapper[genPropSymbol] = gen.oneOf([addFakerSupport(data, type, primGen),
+                                        undefinedGen]);
     wrapper[metaSymbol] = { ...data, type, required: false };
 
 
     wrapper.isRequired = typeFn.isRequired.bind(null);
-    if (type === 'string' &&
-        data.exampleTemplate !== undefined) {
-      wrapper.isRequired[genPropSymbol] = gen.map(() => faker.fake(data.exampleTemplate),
-                                                  gen.return(null));
-    } else {
-      wrapper.isRequired[genPropSymbol] = primGen;
-    }
-
+    wrapper.isRequired[genPropSymbol] = addFakerSupport(data, type, primGen);
     wrapper.isRequired[metaSymbol] = { ...data, type, required: true };
 
     return wrapper;
@@ -130,14 +128,7 @@ function wrapPrimitive(typeFn, primGen, type) {
   fn.isRequired.meta = data => {
     const wrapper = typeFn.isRequired.bind(null);
 
-    if (type === 'string' &&
-        data.exampleTemplate !== undefined) {
-      wrapper[genPropSymbol] = gen.map(() => faker.fake(data.exampleTemplate),
-                                       gen.return(null));
-    } else {
-      wrapper[genPropSymbol] = primGen;
-    }
-
+    wrapper[genPropSymbol] = addFakerSupport(data, type, primGen);
     wrapper[metaSymbol] = { ...data, type, required: true };
 
     return wrapper;
