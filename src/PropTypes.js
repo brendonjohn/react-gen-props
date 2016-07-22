@@ -1,20 +1,19 @@
 import React from 'react';
 import map from 'lodash/map';
 import mapValues from 'lodash/mapValues';
-import {metaSymbol} from './symbol';
+import {getMeta, setMeta} from './meta';
 
 function wrapPrimitive(typeFn, type, isRequired = false) {
   const fn = typeFn.bind(null);
-  fn[metaSymbol] = { type, isRequired };
+  setMeta(fn, { type, isRequired });
 
   fn.meta = data => {
     const wrapper = typeFn.bind(null);
-    // TODO: create fn called 'setMeta'
-    wrapper[metaSymbol] = { ...data, type, isRequired };
+    setMeta(wrapper, { ...data, type, isRequired });
 
     if (!isRequired) {
       wrapper.isRequired = typeFn.isRequired.bind(null);
-      wrapper.isRequired[metaSymbol] = { ...data, type, isRequired: true };
+      setMeta(wrapper.isRequired, { ...data, type, isRequired: true });
     }
 
     return wrapper;
@@ -30,28 +29,28 @@ function wrapPrimitive(typeFn, type, isRequired = false) {
 function wrappedArrayOf(typeFn) {
   return wrapPrimitive(
     React.PropTypes.arrayOf(typeFn),
-    ['arrayOf', typeFn[metaSymbol]]
+    ['arrayOf', getMeta(typeFn)]
   );
 }
 
 function wrappedObjectOf(typeFn) {
   return wrapPrimitive(
     React.PropTypes.objectOf(typeFn),
-    ['objectOf', typeFn[metaSymbol]]
+    ['objectOf', getMeta(typeFn)]
   );
 }
 
 function wrappedShape(typeObj) {
   return wrapPrimitive(
     React.PropTypes.shape(typeObj),
-    ['shape', mapValues(typeObj, fn => fn[metaSymbol])]
+    ['shape', mapValues(typeObj, getMeta)]
   );
 }
 
 function wrappedOneOfType(typeFns) {
   return wrapPrimitive(
     React.PropTypes.oneOfType(typeFns),
-    ['oneOfType', map(typeFns, fn => fn[metaSymbol])]
+    ['oneOfType', map(typeFns, getMeta)]
   );
 }
 

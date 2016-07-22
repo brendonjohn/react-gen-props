@@ -3,7 +3,7 @@ import _ from 'lodash';
 import testcheck, {gen} from 'testcheck';
 import faker from 'faker';
 
-import {getMeta} from './getMeta';
+import {getMeta} from './meta';
 
 const undefinedGen = gen.return(undefined);
 

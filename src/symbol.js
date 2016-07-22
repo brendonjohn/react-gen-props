@@ -13,5 +13,3 @@ export function symbol(type) {
     return `@@${type}`;
   }
 }
-
-export const metaSymbol = symbol('__REACT_GEN_PROPS__');

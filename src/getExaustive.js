@@ -1,7 +1,7 @@
 import React from 'react';
 import _ from 'lodash';
 import testcheck, {gen} from 'testcheck';
-import {getMeta} from './getMeta';
+import {getMeta} from './meta';
 import {getSample} from './getSample';
 
 // TODO: this is not exhaustive

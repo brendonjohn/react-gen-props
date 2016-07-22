@@ -1,6 +1,8 @@
-import {metaSymbol} from './symbol';
+import {symbol} from './symbol';
 import mapValues from 'lodash/mapValues';
 import isObject from 'lodash/isObject';
+
+export const metaSymbol = symbol('__REACT_GEN_PROPS__');
 
 export function getMeta(obj) {
   if (obj[metaSymbol]) {
@@ -13,4 +15,9 @@ export function getMeta(obj) {
   }
 
   throw new Error('wat?');
+}
+
+export function setMeta(obj, val) {
+  obj[metaSymbol] = val;
+  return val;
 }
