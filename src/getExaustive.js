@@ -1,6 +1,7 @@
 import React from 'react';
 import _ from 'lodash';
 import testcheck, {gen} from 'testcheck';
+import faker from 'faker';
 import {getMeta} from './meta';
 import {getSample} from './getSample';
 
@@ -17,27 +18,18 @@ const nodeGen = gen.oneOf([
 
 const typeMap = {
   boolean: () => [gen.return(true), gen.return(false)],
-
   number: () => [gen.int],
-
   string: (_undefined, data) => {
-    const {exampleTemplate} = data;
-
-    if (typeof exampleTemplate !== 'undefined') {
-      return [gen.map(() => faker.fake(exampleTemplate), gen.return(null))];
+    if (_.isString(data.exampleTemplate)) {
+      return [gen.map(() => faker.fake(data.exampleTemplate), gen.return(null))];
     } else {
       return [gen.alphaNumString]
     }
   },
-
   any: () => [gen.any],
-
   element: () => [elementGen],
-
   node: () => [nodeGen],
-
   func: () => [funcGen],
-
   arrayOf: value => {
     const [typeKey, meta] = value.type;
     const gens = typeMap[typeKey](meta, value);
@@ -47,7 +39,6 @@ const typeMap = {
       gen.null
     )]
   },
-
   objectOf: value => {
     const [typeKey, meta] = value.type;
     const gens = typeMap[typeKey](meta, value);

@@ -18,6 +18,30 @@ const nodeGen = gen.oneOf([
   elementGen
 ]);
 
+const typeMap = {
+  boolean: () => gen.boolean,
+  number: () => gen.int,
+  string: (_undefined, data) => {
+    const {exampleTemplate} = data;
+
+    if (typeof exampleTemplate !== 'undefined') {
+      return gen.map(() => faker.fake(exampleTemplate), gen.return(null));
+    } else {
+      return gen.alphaNumString
+    }
+  },
+  any: () => gen.any,
+  element: () => elementGen,
+  node: () => nodeGen,
+  func: () => funcGen,
+  arrayOf: meta => gen.array(getGen(meta)),
+  objectOf: meta => gen.object(gen.alphaNumString, getGen(meta)),
+  oneOf: arr => gen.returnOneOf(arr),
+  oneOfType: metas => gen.oneOf(_.map(metas, m => getGen(m))),
+  shape: meta => getGen(meta),
+  instanceOf: Component => gen.map(props => <Component {...props} />, getGen(getMeta(Component.propTypes)))
+};
+
 const funcGen = gen.return(function noop() {});
 
 function getGen(meta) {
@@ -52,30 +76,6 @@ function handleRequired (valueGen, isRequired) {
 
   return gen.oneOf([valueGen, undefinedGen]);
 }
-
-const typeMap = {
-  boolean: () => gen.boolean,
-  number: () => gen.int,
-  string: (_undefined, data) => {
-    const {exampleTemplate} = data;
-
-    if (typeof exampleTemplate !== 'undefined') {
-      return gen.map(() => faker.fake(exampleTemplate), gen.return(null));
-    } else {
-      return gen.alphaNumString
-    }
-  },
-  any: () => gen.any,
-  element: () => elementGen,
-  node: () => nodeGen,
-  func: () => funcGen,
-  arrayOf: meta => gen.array(getGen(meta)),
-  objectOf: meta => gen.object(gen.alphaNumString, getGen(meta)),
-  oneOf: arr => gen.returnOneOf(arr),
-  oneOfType: metas => gen.oneOf(_.map(metas, m => getGen(m))),
-  shape: meta => getGen(meta),
-  instanceOf: Component => gen.map(props => <Component {...props} />, getGen(getMeta(Component.propTypes)))
-};
 
 
 export function getSample(propTypes, opts) {

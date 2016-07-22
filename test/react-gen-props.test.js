@@ -327,5 +327,18 @@ describe('PropTypes', () => {
 
       assert.equal(result.length, 2);
     });
+
+    it('still uses templates', () => {
+      const props = {
+        a: PropTypes.bool.isRequired,
+        b: PropTypes.string.meta({exampleTemplate: 'HELLO!'}).isRequired
+      };
+
+      const result = getExaustive(props);
+
+      assert.equal(result.length, 2);
+      assert.equal(result[0].b, 'HELLO!');
+      assert.equal(result[1].b, 'HELLO!');
+    })
   });
 });
