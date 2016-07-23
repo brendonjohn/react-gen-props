@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
-import testcheck, {gen} from 'testcheck';
+import {gen} from 'testcheck';
 import faker from 'faker';
 
 import {getMeta} from './meta';
@@ -78,8 +78,6 @@ function handleRequired (valueGen, isRequired) {
 }
 
 
-export function getSample(propTypes, opts) {
-  const { maxSize = 10, times = 20 } = opts;
-  const meta = getMeta(propTypes);
-  return testcheck.sample(getGen(meta), {maxSize, times});
+export function genSample(meta) {
+  return getGen(meta);
 }

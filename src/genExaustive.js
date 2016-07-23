@@ -1,9 +1,8 @@
 import React from 'react';
 import _ from 'lodash';
-import testcheck, {gen} from 'testcheck';
+import {gen} from 'testcheck';
 import faker from 'faker';
 import {getMeta} from './meta';
-import {getSample} from './getSample';
 
 // TODO: this is not exhaustive
 const tagNamesGen = gen.oneOf(['div', 'span', 'input', 'img', 'a']);
@@ -116,8 +115,6 @@ function getPermuatations(data) {
   }, [undefined]);
 }
 
-export function getExaustive(propTypes) {
-  return getPermuatations(getMeta(propTypes))
-           .map(genObject)
-           .map(getSingle)
+export function genExaustive(meta) {
+  return getPermuatations(meta).map(genObject);
 }
