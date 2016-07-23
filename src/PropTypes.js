@@ -1,9 +1,11 @@
 import React from 'react';
 import map from 'lodash/map';
 import mapValues from 'lodash/mapValues';
+import isUndefined from 'lodash/isUndefined';
 import {getMeta, setMeta} from './meta';
 
-function wrapPrimitive(typeFn, type, isRequired = false) {
+function wrapPrimitive(typeFn, type) {
+  const isRequired = isUndefined(typeFn.isRequired);
   const fn = typeFn.bind(null);
   setMeta(fn, { type, isRequired });
 
@@ -20,10 +22,10 @@ function wrapPrimitive(typeFn, type, isRequired = false) {
   };
 
   if (!isRequired) {
-    fn.isRequired = wrapPrimitive(typeFn.isRequired, type, true)
+    fn.isRequired = wrapPrimitive(typeFn.isRequired, type);
   }
 
-  return fn
+  return fn;
 }
 
 function wrappedArrayOf(typeFn) {
@@ -69,14 +71,13 @@ function wrappedInstanceOf(Component) {
 }
 
 export const PropTypes = {
-  bool: wrapPrimitive(React.PropTypes.bool, ['boolean']),
+  bool: wrapPrimitive(React.PropTypes.bool, ['bool']),
   number: wrapPrimitive(React.PropTypes.number, ['number']),
   string: wrapPrimitive(React.PropTypes.string, ['string']),
-  any: wrapPrimitive(React.PropTypes.any, ['anything']),
+  any: wrapPrimitive(React.PropTypes.any, ['any']),
   element: wrapPrimitive(React.PropTypes.element, ['element']),
   node: wrapPrimitive(React.PropTypes.node, ['node']),
   func: wrapPrimitive(React.PropTypes.func, ['function']),
-  ...(React.PropTypes.symbol ? { symbol: wrapPrimitive(React.PropTypes.symbol, ['symbol']) } : {}),
   array: wrapPrimitive(React.PropTypes.array, ['arrayOf', 'any']),
   object: wrapPrimitive(React.PropTypes.object, ['objectOf', 'any']),
   instanceOf: wrappedInstanceOf,

@@ -2,24 +2,11 @@ import React from 'react';
 import _ from 'lodash';
 import {gen} from 'testcheck';
 import faker from 'faker';
-
 import {getMeta} from './meta';
-
-const undefinedGen = gen.return(undefined);
-
-// TODO: this is not exhaustive
-const tagNamesGen = gen.oneOf(['div', 'span', 'input', 'img', 'a']);
-const elementGen = gen.map(tagName => React.createElement(tagName), tagNamesGen);
-
-// TODO: this is not exaustive
-const nodeGen = gen.oneOf([
-  gen.string,
-  gen.int,
-  elementGen
-]);
+import {genExtra} from './genExtra';
 
 const typeMap = {
-  boolean: () => gen.boolean,
+  bool: () => gen.boolean,
   number: () => gen.int,
   string: (_undefined, data) => {
     const {exampleTemplate} = data;
@@ -31,26 +18,18 @@ const typeMap = {
     }
   },
   any: () => gen.any,
-  element: () => elementGen,
-  node: () => nodeGen,
+  element: () => genExtra.element,
+  node: () => genExtra.node,
   func: () => funcGen,
-  arrayOf: meta => gen.array(getGen(meta)),
-  objectOf: meta => gen.object(gen.alphaNumString, getGen(meta)),
+  arrayOf: meta => gen.array(genSample(meta)),
+  objectOf: meta => gen.object(gen.alphaNumString, genSample(meta)),
   oneOf: arr => gen.returnOneOf(arr),
-  oneOfType: metas => gen.oneOf(_.map(metas, m => getGen(m))),
-  shape: meta => getGen(meta),
-  instanceOf: Component => gen.map(props => <Component {...props} />, getGen(getMeta(Component.propTypes)))
+  oneOfType: metas => gen.oneOf(_.map(metas, genSample)),
+  shape: meta => genSample(meta),
+  instanceOf: Component => gen.map(props => <Component {...props} />, genSample(getMeta(Component.propTypes)))
 };
 
 const funcGen = gen.return(function noop() {});
-
-function getGen(meta) {
-  if (_.isObject(meta)) {
-    return genObject(meta);
-  } else {
-    return genValue(meta);
-  }
-}
 
 // TODO can probably use some variation of gen.object here instead
 function genObject (obj) {
@@ -62,11 +41,10 @@ function genObject (obj) {
 }
 
 function genValue(value) {
-  const {type, isRequired} = value;
-  const [typeKey, meta] = type;
+  const [typeKey, meta] = value.type;
   const generator = typeMap[typeKey](meta, value);
 
-  return handleRequired(generator, isRequired);
+  return handleRequired(generator, value.isRequired);
 }
 
 function handleRequired (valueGen, isRequired) {
@@ -74,10 +52,14 @@ function handleRequired (valueGen, isRequired) {
     return valueGen;
   }
 
-  return gen.oneOf([valueGen, undefinedGen]);
+  return gen.oneOf([valueGen, gen.undefined]);
 }
 
 
 export function genSample(meta) {
-  return getGen(meta);
+  if (_.isObject(meta)) {
+    return genObject(meta);
+  } else {
+    return genValue(meta);
+  }
 }

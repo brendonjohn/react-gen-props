@@ -3,20 +3,10 @@ import _ from 'lodash';
 import {gen} from 'testcheck';
 import faker from 'faker';
 import {getMeta} from './meta';
-
-// TODO: this is not exhaustive
-const tagNamesGen = gen.oneOf(['div', 'span', 'input', 'img', 'a']);
-const elementGen = gen.map(tagName => React.createElement(tagName), tagNamesGen);
-
-// TODO: this is not exaustive
-const nodeGen = gen.oneOf([
-  gen.string,
-  gen.int,
-  elementGen
-]);
+import {genExtra} from './genExtra';
 
 const typeMap = {
-  boolean: () => [gen.return(true), gen.return(false)],
+  bool: () => [gen.return(true), gen.return(false)],
   number: () => [gen.int],
   string: (_undefined, data) => {
     if (_.isString(data.exampleTemplate)) {
@@ -26,28 +16,32 @@ const typeMap = {
     }
   },
   any: () => [gen.any],
-  element: () => [elementGen],
-  node: () => [nodeGen],
+  element: () => [genExtra.element],
+  node: () => [genExtra.node],
   func: () => [funcGen],
   arrayOf: value => {
     const [typeKey, meta] = value.type;
     const gens = typeMap[typeKey](meta, value);
+    const shuffled = _.shuffle(gens);
 
-    return [gen.map(
-      () => _.shuffle(gens).map(getSingle),
-      gen.null
-    )]
+    return [
+      _.reduce(shuffled, (acc0, gen0) =>
+        gen.bind(acc0, acc =>
+          gen.map(rnd => acc.concat(rnd), gen0)
+        )
+      , gen.return([]))
+    ]
   },
   objectOf: value => {
     const [typeKey, meta] = value.type;
     const gens = typeMap[typeKey](meta, value);
 
     return [
-      _.reduce(gens, (accGen, g) =>
-        gen.bind(accGen, acc =>
-          gen.bind(g, value =>
+      _.reduce(gens, (acc0, gen0) =>
+        gen.bind(acc0, acc =>
+          gen.bind(gen0, rnd =>
             gen.map(
-              key => _.extend({}, acc, { [key]: value }),
+              key => _.extend({}, acc, { [key]: rnd }),
               gen.resize(50, gen.alphaNumString)
             )
           )
@@ -67,25 +61,17 @@ const typeMap = {
     );
   },
 
-  shape: meta => getPermuatations(meta).map(genObject),
+  shape: meta => genExaustive(meta),
 
   instanceOf: Component => {
     const meta = getMeta(Component.propTypes);
-    const permutations = getPermuatations(meta).map(genObject);
+    const permutations = genExaustive(meta);
 
     return permutations.map(perm =>
       gen.map(props => <Component {...props} />, perm)
     );
   }
 };
-
-function genObject(obj) {
-  return gen.object(obj);
-}
-
-function getSingle(generator) {
-  return testcheck.sample(generator, { times: 1 })[0];
-}
 
 function handleRequired(gens, isRequired) {
   if (isRequired) {
@@ -116,5 +102,5 @@ function getPermuatations(data) {
 }
 
 export function genExaustive(meta) {
-  return getPermuatations(meta).map(genObject);
+  return getPermuatations(meta).map(obj => gen.object(obj));
 }

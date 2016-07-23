@@ -82,7 +82,7 @@ describe('PropTypes', () => {
       },
       isCool: {
         ...coolMeta,
-        type: ['boolean'],
+        type: ['bool'],
         isRequired: false
       },
       shirt: {
