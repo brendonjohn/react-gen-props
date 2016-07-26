@@ -89,11 +89,14 @@ function handleRequired(gens, data) {
   if (data.isRequired && data.isExaustive) {
     return gens;
   }
-  else if (data.isRequired) {
+  else if (data.isRequired) /* is not exaustive */ {
     return [_.sample(gens)];
   }
-  else {
+  else if (data.isExaustive) /* is not required */ {
     return gens.concat(gen.undefined);
+  }
+  else {
+    return gens;
   }
 }
 
