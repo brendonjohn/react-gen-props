@@ -11,7 +11,8 @@ describe('PropTypes', () => {
       shirt: PropTypes.shape({
         color: PropTypes.oneOf(['red', 'blue', 'green']).isRequired,
         sleeveLength: PropTypes.number.isRequired
-      }).isRequired
+      }).isRequired,
+      someFunc: PropTypes.func.isRequired
     };
 
     const times = 100;
@@ -21,7 +22,7 @@ describe('PropTypes', () => {
     assert.equal(result.length, times);
 
     result.forEach(obj => {
-      assert.deepEqual(Object.keys(obj), ['name', 'age', 'isCool', 'shirt']);
+      assert.deepEqual(Object.keys(obj), ['name', 'age', 'isCool', 'shirt', 'someFunc']);
       assert.deepEqual(Object.keys(obj.shirt), ['color', 'sleeveLength']);
       assert.ok(typeof obj.name === 'string');
       assert.ok(typeof obj.age === 'number');
