@@ -77,7 +77,7 @@ export const PropTypes = {
   any: wrapPrimitive(React.PropTypes.any, ['any']),
   element: wrapPrimitive(React.PropTypes.element, ['element']),
   node: wrapPrimitive(React.PropTypes.node, ['node']),
-  func: wrapPrimitive(React.PropTypes.func, ['function']),
+  func: wrapPrimitive(React.PropTypes.func, ['func']),
   array: wrapPrimitive(React.PropTypes.array, ['arrayOf', 'any']),
   object: wrapPrimitive(React.PropTypes.object, ['objectOf', 'any']),
   instanceOf: wrappedInstanceOf,
