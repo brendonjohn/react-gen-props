@@ -40,23 +40,23 @@ describe('PropTypes', () => {
       number: PropTypes.number.isRequired,
       string: PropTypes.string.isRequired,
       arrayOfBools: PropTypes.arrayOf(PropTypes.bool).isRequired
-    }
+    };
 
     const props = {
       myComponent: PropTypes.instanceOf(Component).isRequired
-    }
+    };
 
     const sample = getSample(props, { times: 1 });
 
-    assert.ok(typeof sample[0].myComponent.props.number === 'number')
-    assert.ok(typeof sample[0].myComponent.props.string === 'string')
-    assert.ok(Array.isArray(sample[0].myComponent.props.arrayOfBools))
+    assert.ok(typeof sample[0].myComponent.props.number === 'number');
+    assert.ok(typeof sample[0].myComponent.props.string === 'string');
+    assert.ok(Array.isArray(sample[0].myComponent.props.arrayOfBools));
   });
 
   it('adds meta properties for easily consumable documentation', () => {
     const coolMeta = {description: 'Whether someone is cool or something'};
     const ageMeta = {description: 'The aim of the game'};
-    const shirtMeta = {description: 'The dimensions of your shirt', madeIn: 'China'};
+    const shirtMeta = {description: 'The dimensions of your shirt', madeIn: 'China', isExaustive: false};
 
     const props = {
       name: PropTypes.string,
@@ -73,17 +73,20 @@ describe('PropTypes', () => {
     assert.deepEqual(type, {
       name: {
         type: ['string'],
-        isRequired: false
+        isRequired: false,
+        isExaustive: true
       },
       age: {
         ...ageMeta,
         type: ['number'],
-        isRequired: true
+        isRequired: true,
+        isExaustive: true
       },
       isCool: {
         ...coolMeta,
         type: ['bool'],
-        isRequired: false
+        isRequired: false,
+        isExaustive: true
       },
       shirt: {
         ...shirtMeta,
@@ -92,11 +95,13 @@ describe('PropTypes', () => {
             type: ['oneOf',
               ['red', 'blue', 'green']
             ],
-            isRequired: true
+            isRequired: true,
+            isExaustive: true
           },
           sleeveLength: {
             type: ['number'],
-            isRequired: false
+            isRequired: false,
+            isExaustive: true
           }
         }],
         isRequired: true
@@ -135,7 +140,7 @@ describe('PropTypes', () => {
     it('generates exaustive lists of booleans', () => {
       const props = {
         a: PropTypes.bool.isRequired,
-        b: PropTypes.bool.isRequired,
+        b: PropTypes.bool.isRequired
       };
 
       const result = getExaustive(props);

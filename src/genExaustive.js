@@ -6,13 +6,19 @@ import {getMeta} from './meta';
 import {genExtra} from './genExtra';
 
 const typeMap = {
-  bool: () => [gen.return(true), gen.return(false)],
+  bool: (_undefined, data) => {
+    if (data.isExaustive) {
+      return [gen.return(true), gen.return(false)];
+    } else {
+      return [gen.boolean];
+    }
+  },
   number: () => [gen.int],
   string: (_undefined, data) => {
     if (_.isString(data.exampleTemplate)) {
       return [gen.map(() => faker.fake(data.exampleTemplate), gen.return(null))];
     } else {
-      return [gen.alphaNumString]
+      return [gen.alphaNumString];
     }
   },
   any: () => [gen.any],
@@ -30,7 +36,7 @@ const typeMap = {
           gen.map(rnd => acc.concat(rnd), gen0)
         )
       , gen.return([]))
-    ]
+    ];
   },
   objectOf: value => {
     const [typeKey, meta] = value.type;
@@ -50,7 +56,13 @@ const typeMap = {
     ];
   },
 
-  oneOf: arr => arr.map(a => gen.return(a)),
+  oneOf: (arr, data) => {
+    if (data.isExaustive) {
+      return arr.map(a => gen.return(a));
+    } else {
+      return [gen.returnOneOf(arr)];
+    }
+  },
 
   oneOfType: values => {
     return _.flatten(
@@ -73,34 +85,43 @@ const typeMap = {
   }
 };
 
-function handleRequired(gens, isRequired) {
-  if (isRequired) {
-    return gens
+function handleRequired(gens, data) {
+  if (data.isRequired && data.isExaustive) {
+    return gens;
   }
-
-  return gens.concat(gen.undefined);
+  else if (data.isRequired) {
+    return [_.sample(gens)];
+  }
+  else {
+    return gens.concat(gen.undefined);
+  }
 }
 
-function getPermuatations(data) {
-  return _.reduce(data, (acc, value, key) => {
+function getPermutations(meta0) {
+  // acc : [{ key -> gen }] where each object is complete (all fields present)
+  // [field1, field2, field3]
+  // 1. [{field1 -> gen}]
+  // 2. [{field1 -> gen, field2 -> gen}, {field1 -> gen, field2 -> gen}]
+  return _.reduce(meta0, (acc, value, key) => {
     const [typeKey, meta] = value.type;
     const gens = typeMap[typeKey](meta, value);
 
     const objs = _.map(
-      handleRequired(gens, value.isRequired),
+      handleRequired(gens, value),
       g => ({ [key]: g })
     );
 
     return _.reduce(acc, (acc0, item) => {
       const list = _.reduce(objs, (acc1, obj) => {
-        return acc1.concat(_.extend({}, item, obj))
+        return acc1.concat(_.extend({}, item, obj));
       }, []);
 
       return acc0.concat(list);
     }, []);
-  }, [undefined]);
+
+  }, [{}]);
 }
 
 export function genExaustive(meta) {
-  return getPermuatations(meta).map(obj => gen.object(obj));
+  return getPermutations(meta).map(obj => gen.object(obj));
 }

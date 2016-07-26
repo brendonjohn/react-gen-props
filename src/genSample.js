@@ -45,7 +45,7 @@ function genValue(value) {
   return handleRequired(generator, value.isRequired);
 }
 
-function handleRequired (valueGen, isRequired) {
+function handleRequired(valueGen, isRequired) {
   if (isRequired) {
     return valueGen;
   }

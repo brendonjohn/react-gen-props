@@ -7,15 +7,15 @@ import {getMeta, setMeta} from './meta';
 function wrapPrimitive(typeFn, type) {
   const isRequired = isUndefined(typeFn.isRequired);
   const fn = typeFn.bind(null);
-  setMeta(fn, { type, isRequired });
+  setMeta(fn, { type, isRequired, isExaustive: true });
 
   fn.meta = data => {
     const wrapper = typeFn.bind(null);
-    setMeta(wrapper, { ...data, type, isRequired });
+    setMeta(wrapper, { isExaustive: true, ...data, type, isRequired });
 
     if (!isRequired) {
       wrapper.isRequired = typeFn.isRequired.bind(null);
-      setMeta(wrapper.isRequired, { ...data, type, isRequired: true });
+      setMeta(wrapper.isRequired, { isExaustive: true, ...data, type, isRequired: true });
     }
 
     return wrapper;
