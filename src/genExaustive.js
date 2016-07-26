@@ -16,7 +16,7 @@ const typeMap = {
   number: () => [gen.int],
   string: (_undefined, data) => {
     if (_.isString(data.exampleTemplate)) {
-      return [gen.map(() => faker.fake(data.exampleTemplate), gen.return(null))];
+      return [gen.map(() => faker.fake(data.exampleTemplate), gen.null)];
     } else {
       return [gen.alphaNumString];
     }
