@@ -20,7 +20,7 @@ const typeMap = {
   any: () => gen.any,
   element: () => genExtra.element,
   node: () => genExtra.node,
-  func: () => funcGen,
+  func: () => genExtra.func,
   arrayOf: meta => gen.array(genSample(meta)),
   objectOf: meta => gen.object(gen.alphaNumString, genSample(meta)),
   oneOf: arr => gen.returnOneOf(arr),
@@ -28,8 +28,6 @@ const typeMap = {
   shape: meta => genSample(meta),
   instanceOf: Component => gen.map(props => <Component {...props} />, genSample(getMeta(Component.propTypes)))
 };
-
-const funcGen = gen.return(function noop() {});
 
 // TODO can probably use some variation of gen.object here instead
 function genObject (obj) {

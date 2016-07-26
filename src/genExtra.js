@@ -13,7 +13,10 @@ const node = gen.oneOf([
   element
 ]);
 
+const func = gen.return(function noop() {});
+
 export const genExtra = {
   element,
+  func,
   node
 };
