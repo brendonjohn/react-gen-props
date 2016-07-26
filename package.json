@@ -1,6 +1,6 @@
 {
   "name": "react-gen-props",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Use testcheck to generate props from your propTypes",
   "main": "lib/index.js",
   "scripts": {
